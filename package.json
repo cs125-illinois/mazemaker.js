@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "browserify": "browserify entry.js > out/mazemaker.js"
+    "browserify": "browserify -g uglifyify entry.js > out/mazemaker.js",
+    "gasify": "browserify -p gasify entry.js > out/mazemaker-google-app-script.js"
   },
   "repository": {
     "type": "git",
