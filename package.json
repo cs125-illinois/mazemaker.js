@@ -1,0 +1,22 @@
+{
+  "name": "mazemaker",
+  "version": "0.0.1",
+  "description": "A simple maze-creation library.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cs125-illinois/mazemaker.git"
+  },
+  "keywords": [
+    "maze"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cs125-illinois/mazemaker/issues"
+  },
+  "homepage": "https://github.com/cs125-illinois/mazemaker#readme"
+}
