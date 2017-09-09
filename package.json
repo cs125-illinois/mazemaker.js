@@ -4,7 +4,8 @@
   "description": "A simple maze-creation library.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "browserify": "browserify -g uglifyify index.js > out/mazemaker.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
   "dependencies": {
     "chai": "^4.1.2",
     "debug": "^3.0.1",
+    "uglifyify": "^4.0.3",
     "underscore": "^1.8.3"
   },
   "devDependencies": {

@@ -2,6 +2,8 @@ const _ = require('underscore'),
       expect = require('chai').expect,
       debug = require('debug')('mazemaker');
 
+'use strict';
+
 // Enumerate the movement options and the associated borders to remove
 const directions = [
   {dx: 0, dy: 1, direction: "up" },
@@ -22,7 +24,11 @@ const oppositeDirections = {
  * @return {Object} Object representing a maze
  */
 
-function mazeMaker(xDimension, yDimension) {
+const defaults = {
+  loops: 0
+}
+function mazeMaker(xDimension, yDimension, config) {
+  config = _.extend(_.clone(defaults), config);
 
   // Mazes with negative dimensions or one cell are not valid
   expect(xDimension).to.be.at.least(1);
@@ -31,7 +37,7 @@ function mazeMaker(xDimension, yDimension) {
 
 	// Simple maze data structure. All borders start out set and are cleared
   // below.
-  var maze = {}, visited = {};
+  var maze = {};
   for (var x = 0; x < xDimension; x++) {
     maze[x] = {};
     for (var y = 0; y < yDimension; y++) {
