@@ -1,3 +1,20 @@
+const _ = require('underscore'),
+      expect = require('chai').expect,
+      debug = require('debug')('mazemaker');
+
+// Enumerate the movement options and the associated borders to remove
+const directions = [
+  {dx: 0, dy: 1, direction: "up" },
+  {dx: 1, dy: 0, direction: "right" },
+  {dx: 0, dy: -1, direction: "down" },
+  {dx: -1, dy: 0, direction: "left" }
+];
+const oppositeDirections = {
+  up: "down",
+  down: "up",
+  left: "right",
+  right: "left"
+};
 /**
  * Create a maze.
  * @param {Number} columnCount - number of columns in the maze
@@ -5,12 +22,12 @@
  * @return {Object} Object representing a maze
  */
 
-function makeMaker(xDimension, yDimension) {
+function mazeMaker(xDimension, yDimension) {
 
   // Mazes with negative dimensions or one cell are not valid
-  if (xDimension <= 0 || yDimension <= 0 || xDimension * yDimension <= 1) {
-    throw new Error("illegal dimensions");
-  }
+  expect(xDimension).to.be.at.least(1);
+  expect(yDimension).to.be.at.least(1);
+  expect(xDimension * yDimension).to.be.at.least(1);
 
 	// Simple maze data structure. All borders start out set and are cleared
   // below.
@@ -21,70 +38,101 @@ function makeMaker(xDimension, yDimension) {
       maze[x][y] = {
         x: x,
         y: y,
-        top: true,
-        right: true,
-        bottom: true,
-        left: true,
-        visited: false
+        visited: false,
+        borders: {
+          up: true,
+          right: true,
+          down: true,
+          left: true
+        },
+        neighbors: {}
       };
     }
   }
 
-	// Pick a random starting point, store it to the path, and mark it as visited
-  var currentCell = maze[Math.floor(Math.random() * xDimension)][Math.floor(Math.random() * yDimension)];
+  // Set neighbors as a convenience for several functions below
+  for (var x = 0; x < xDimension; x++) {
+    for (var y = 0; y < yDimension; y++) {
+      var cell = maze[x][y];
+      _.each(directions, function (direction) {
+        try {
+          var neighbor =
+            maze[cell.x + direction.dx][cell.y + direction.dy];
+          if (neighbor) {
+            cell.neighbors[direction.direction] = neighbor;
+          }
+        } catch (err) { };
+      });
+    }
+  }
+
+	// Pick a random starting point and store it to the path
+  var currentCell = maze[_.random(0, xDimension - 1)][_.random(0, yDimension - 1)];
   var path = [ currentCell ];
-  currentCell.visited = true;
   var unvisitedCount = xDimension * yDimension - 1;
 
-  // Enumerate the movement options and the associated borders to remove
-  var nextDirections = [
-    {dx: 0, dy: 1, border: "top" },
-    {dx: 1, dy: 0, border: "right" },
-    {dx: 0, dy: -1, border: "bottom" },
-    {dx: -1, dy: 0, border: "left" }
-  ];
-
   while (unvisitedCount > 0) {
-    if (!currentCell) {
-      throw new Error("path shouldn't become empty");
-    }
-    var nextCells = [];
+    currentCell = _.last(path);
+    expect(currentCell).to.not.be.undefined;
+    currentCell.visited = true;
+    debug(`At ${currentCell.x}, ${currentCell.y}`);
 
-    // Examine all neighboring cells
-    for (var i = 0; i < nextDirections.length; i++) {
-      var nextDirection = nextDirections[i];
-      var nextCell = {
-        x: currentCell.x + nextDirection.dx,
-        y: currentCell.y + nextDirection.dy,
-        border: nextDirection.border
-      };
+    var nextCells = _.chain(currentCell.neighbors)
+      .each(function (cell, direction) {
+        cell.direction = direction;
+      })
+      .filter(function (cell) {
+        return cell.visited === false;
+      })
+      .value();
 
-      // Is the cell position valid, and is it unvisited?
-      if (nextCell.x >= 0 && nextCell.x < xDimension &&
-          nextCell.y >= 0 && nextCell.y < yDimension &&
-          maze[nextCell.x][nextCell.y].visited === false) {
-        nextCells.push(nextCell);
-      }
-    }
-
-    // If there are no neigboring cells to visit, backtrack
+    // If there are no neighboring cells to visit, backtrack
     if (nextCells.length === 0) {
+      debug('backtracking');
       path.pop();
-      currentCell = path.slice(-1)[0];
       continue;
     }
 
-    // Otherwise, choose a cell at random, take out the border, add it to the
-    // path, and mark it as visited.
-    var nextCell = nextCells[Math.floor(Math.random() * nextCells.length)];
-    currentCell[nextCell.border] = false;
-    currentCell = maze[nextCell.x][nextCell.y];
-    currentCell.visited = true;
-    path.push(currentCell);
+    // Otherwise, choose a cell at random, take out the borders, mark it as
+    // visited, and add it to the path
+    var nextCell = _.first(_.shuffle(nextCells));
+
+    debug(`removing ${nextCell.direction} border from [${currentCell.x}, ${currentCell.y}]`);
+    expect(currentCell.borders[nextCell.direction]).to.be.true;
+    currentCell.borders[nextCell.direction] = false;
+
+    var oppositeBorder = oppositeDirections[nextCell.direction];
+    debug(`removing ${oppositeBorder} border from [${nextCell.x}, ${nextCell.y}]`);
+    expect(nextCell.borders[oppositeBorder]).to.be.true;
+    nextCell.borders[oppositeBorder] = false;
+
     unvisitedCount--;
+    path.push(nextCell);
+  }
+
+  // Validate that the maze is correct by checking if borders match
+  for (var x = 0; x < xDimension; x++) {
+    for (var y = 0; y < yDimension; y++) {
+      var cell = maze[x][y];
+      if (x === 0) {
+        expect(cell.borders).to.have.property('left', true);
+      }
+      if (x === xDimension - 1) {
+        expect(cell.borders).to.have.property('right', true);
+      }
+      if (y === 0) {
+        expect(cell.borders).to.have.property('down', true);
+      }
+      if (y === yDimension - 1) {
+        expect(cell.borders).to.have.property('up', true);
+      }
+      _.each(cell.neighbors, function (neighbor, direction) {
+        expect(cell.borders[direction]).to.equal(neighbor.borders[oppositeDirections[direction]]);
+      });
+    }
   }
 }
 
-exports = module.exports = makeMaker
+exports = module.exports = mazeMaker
 
 // vim: ts=2:sw=2:et:ft=javascript
