@@ -150,6 +150,6 @@ var mazeMaker = function(xDimension, yDimension, config) {
   return maze;
 }
 
-exports = module.exports = mazeMaker
+exports = module.exports = global.mazeMaker = mazeMaker
 
 // vim: ts=2:sw=2:et:ft=javascript
