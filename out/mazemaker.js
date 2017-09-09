@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 15);
+/******/ 	return __webpack_require__(__webpack_require__.s = 16);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -129,13 +129,13 @@ exports.version = '4.1.2';
  * Assertion Error
  */
 
-exports.AssertionError = __webpack_require__(9);
+exports.AssertionError = __webpack_require__(10);
 
 /*!
  * Utils for plugins (not exported)
  */
 
-var util = __webpack_require__(18);
+var util = __webpack_require__(19);
 
 /**
  * # .use(function)
@@ -370,8 +370,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 // This is (almost) directly from Node.js utils
 // https://github.com/joyent/node/blob/f8c335d0caf47f16d31413f89aa28eda3878e3aa/lib/util.js
 
-var getName = __webpack_require__(11);
-var getProperties = __webpack_require__(12);
+var getName = __webpack_require__(12);
+var getProperties = __webpack_require__(13);
 var getEnumerableProperties = __webpack_require__(24);
 var config = __webpack_require__(2);
 
@@ -835,7 +835,7 @@ module.exports = function addLengthGuard(fn, assertionName, isChainable) {
 
 var config = __webpack_require__(2);
 var flag = __webpack_require__(0);
-var getProperties = __webpack_require__(12);
+var getProperties = __webpack_require__(13);
 var isProxyEnabled = __webpack_require__(5);
 
 /*!
@@ -1318,10 +1318,40 @@ module.exports = function typeDetect(obj) {
 };
 
 module.exports.typeDetect = module.exports;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(21)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)))
 
 /***/ }),
 /* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var g;
+
+// This works in non-strict mode
+g = function () {
+	return this;
+}();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1, eval)("this");
+} catch (e) {
+	// This works if the window reference is available
+	if ((typeof window === "undefined" ? "undefined" : _typeof(window)) === "object") g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+/***/ }),
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1445,7 +1475,7 @@ AssertionError.prototype.toJSON = function (stack) {
 };
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1473,7 +1503,7 @@ module.exports = function getActual(obj, args) {
 };
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1523,7 +1553,7 @@ function getFuncName(aFunc) {
 module.exports = getFuncName;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1567,7 +1597,7 @@ module.exports = function getProperties(object) {
 };
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1621,7 +1651,7 @@ module.exports = function objDisplay(obj) {
 };
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1656,18 +1686,162 @@ module.exports = function getOwnEnumerablePropertySymbols(obj) {
 };
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+/* WEBPACK VAR INJECTION */(function(global) {
 
+var _ = __webpack_require__(17),
+    assert = __webpack_require__(18).assert,
+    debug = __webpack_require__(41)('mazemaker');
 
-var _ = __webpack_require__(16),
-    expect = __webpack_require__(17).expect,
-    debug = __webpack_require__(41)('test');
+'use strict';
+
+// Enumerate the movement options and the associated borders to remove
+var directions = [{ dx: 0, dy: 1, direction: "up" }, { dx: 1, dy: 0, direction: "right" }, { dx: 0, dy: -1, direction: "down" }, { dx: -1, dy: 0, direction: "left" }];
+var oppositeDirections = {
+  up: "down",
+  down: "up",
+  left: "right",
+  right: "left"
+};
+/**
+ * Create a maze.
+ * @param {Number} columnCount - number of columns in the maze
+ * @param {Number} rowCount - number of rows in the maze
+ * @return {Object} Object representing a maze
+ */
+
+var defaults = {
+  loops: 0
+};
+var mazeMaker = function mazeMaker(xDimension, yDimension, config) {
+  config = _.extend(_.clone(defaults), config);
+
+  // Mazes with negative dimensions or one cell are not valid
+  assert(xDimension >= 1, 'xDimension too small');
+  assert(yDimension >= 1, 'yDimension too small');
+  assert(xDimension * yDimension > 1, 'combined dimensions too small');
+
+  // Simple maze data structure. All borders start out set and are cleared
+  // below.
+  var maze = {};
+  for (var x = 0; x < xDimension; x++) {
+    maze[x] = {};
+    for (var y = 0; y < yDimension; y++) {
+      maze[x][y] = {
+        x: x,
+        y: y,
+        visited: false,
+        borders: {
+          up: true,
+          right: true,
+          down: true,
+          left: true
+        },
+        neighbors: {}
+      };
+    }
+  }
+
+  // Set neighbors as a convenience for several functions below
+  for (var x = 0; x < xDimension; x++) {
+    for (var y = 0; y < yDimension; y++) {
+      var cell = maze[x][y];
+      _.each(directions, function (direction) {
+        try {
+          var neighbor = maze[cell.x + direction.dx][cell.y + direction.dy];
+          if (neighbor) {
+            cell.neighbors[direction.direction] = neighbor;
+          }
+        } catch (err) {};
+      });
+    }
+  }
+
+  // Pick a random starting point and store it to the path
+  var currentCell = maze[_.random(0, xDimension - 1)][_.random(0, yDimension - 1)];
+  var path = [currentCell];
+  var unvisitedCount = xDimension * yDimension - 1;
+
+  while (unvisitedCount > 0) {
+    currentCell = _.last(path);
+    assert.notTypeOf(currentCell, 'undefined', 'current cell should not be undefined');
+    currentCell.visited = true;
+    debug('At ' + currentCell.x + ', ' + currentCell.y);
+
+    var nextCells = _.chain(currentCell.neighbors).each(function (cell, direction) {
+      cell.direction = direction;
+    }).filter(function (cell) {
+      return cell.visited === false;
+    }).value();
+
+    // If there are no neighboring cells to visit, backtrack
+    if (nextCells.length === 0) {
+      debug('backtracking');
+      path.pop();
+      continue;
+    }
+
+    // Otherwise, choose a cell at random, take out the borders, mark it as
+    // visited, and add it to the path
+    var nextCell = _.sample(nextCells);
+
+    debug('removing ' + nextCell.direction + ' border from [' + currentCell.x + ', ' + currentCell.y + ']');
+    assert(currentCell.borders[nextCell.direction] === true, 'current cell should have this border');
+    currentCell.borders[nextCell.direction] = false;
+
+    var oppositeBorder = oppositeDirections[nextCell.direction];
+    debug('removing ' + oppositeBorder + ' border from [' + nextCell.x + ', ' + nextCell.y + ']');
+    assert(nextCell.borders[oppositeBorder] === true, 'next cell should have his border');
+    nextCell.borders[oppositeBorder] = false;
+
+    unvisitedCount--;
+    path.push(nextCell);
+  }
+
+  // Validate that the maze is correct by checking if borders match
+  for (var x = 0; x < xDimension; x++) {
+    for (var y = 0; y < yDimension; y++) {
+      var cell = maze[x][y];
+      if (x === 0) {
+        assert(cell.borders.left === true);
+      }
+      if (x === xDimension - 1) {
+        assert(cell.borders.right === true);
+      }
+      if (y === 0) {
+        assert(cell.borders.down === true);
+      }
+      if (y === yDimension - 1) {
+        assert(cell.borders.up === true);
+      }
+      _.each(cell.neighbors, function (neighbor, direction) {
+        assert(cell.borders[direction] === neighbor.borders[oppositeDirections[direction]]);
+      });
+    }
+  }
+
+  // Clean up the maze structure
+  for (var x = 0; x < xDimension; x++) {
+    for (var y = 0; y < yDimension; y++) {
+      var cell = maze[x][y];
+      delete cell.neighbors;
+      delete cell.visited;
+    }
+  }
+
+  return maze;
+};
+
+exports = module.exports = global.mazeMaker = mazeMaker;
+
+// vim: ts=2:sw=2:et:ft=javascript
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)))
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3246,7 +3420,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 }).call(undefined);
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3255,7 +3429,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 module.exports = __webpack_require__(1);
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3271,13 +3445,13 @@ module.exports = __webpack_require__(1);
  * Dependencies that are used for multiple exports are required here only once
  */
 
-var pathval = __webpack_require__(19);
+var pathval = __webpack_require__(20);
 
 /*!
  * test utility
  */
 
-exports.test = __webpack_require__(20);
+exports.test = __webpack_require__(21);
 
 /*!
  * type utility
@@ -3300,7 +3474,7 @@ exports.getMessage = __webpack_require__(23);
  * actual utility
  */
 
-exports.getActual = __webpack_require__(10);
+exports.getActual = __webpack_require__(11);
 
 /*!
  * Inspect util
@@ -3312,7 +3486,7 @@ exports.inspect = __webpack_require__(4);
  * Object Display util
  */
 
-exports.objDisplay = __webpack_require__(13);
+exports.objDisplay = __webpack_require__(14);
 
 /*!
  * Flag utility
@@ -3348,7 +3522,7 @@ exports.hasProperty = pathval.hasProperty;
  * Function name
  */
 
-exports.getName = __webpack_require__(11);
+exports.getName = __webpack_require__(12);
 
 /*!
  * add Property
@@ -3396,7 +3570,7 @@ exports.compareByInspect = __webpack_require__(32);
  * Get own enumerable property symbols method
  */
 
-exports.getOwnEnumerablePropertySymbols = __webpack_require__(14);
+exports.getOwnEnumerablePropertySymbols = __webpack_require__(15);
 
 /*!
  * Get own enumerable properties method
@@ -3435,7 +3609,7 @@ exports.isProxyEnabled = __webpack_require__(5);
 exports.isNaN = __webpack_require__(35);
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3732,7 +3906,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3768,36 +3942,6 @@ module.exports = function test(obj, args) {
 };
 
 /***/ }),
-/* 21 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var g;
-
-// This works in non-strict mode
-g = function () {
-	return this;
-}();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1, eval)("this");
-} catch (e) {
-	// This works if the window reference is available
-	if ((typeof window === "undefined" ? "undefined" : _typeof(window)) === "object") g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
-/***/ }),
 /* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3824,7 +3968,7 @@ module.exports = g;
  * @api public
  */
 
-var AssertionError = __webpack_require__(9);
+var AssertionError = __webpack_require__(10);
 var flag = __webpack_require__(0);
 var type = __webpack_require__(8);
 
@@ -3874,9 +4018,9 @@ module.exports = function expectTypes(obj, types) {
  */
 
 var flag = __webpack_require__(0),
-    getActual = __webpack_require__(10),
+    getActual = __webpack_require__(11),
     inspect = __webpack_require__(4),
-    objDisplay = __webpack_require__(13);
+    objDisplay = __webpack_require__(14);
 
 /**
  * ### .getMessage(object, message, negateMessage)
@@ -5051,7 +5195,7 @@ module.exports = function compareByInspect(a, b) {
  * Module dependancies
  */
 
-var getOwnEnumerablePropertySymbols = __webpack_require__(14);
+var getOwnEnumerablePropertySymbols = __webpack_require__(15);
 
 /**
  * ### .getOwnEnumerableProperties(object)

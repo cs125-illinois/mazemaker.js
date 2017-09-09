@@ -1,5 +1,5 @@
 module.exports = {
-  entry: './entry.js',
+  entry: './index.js',
   output: {
     filename: 'out/mazemaker.js'
   },

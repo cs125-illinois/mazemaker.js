@@ -1,5 +1,5 @@
 const _ = require('underscore'),
-      expect = require('chai').expect,
+      assert = require('chai').assert,
       debug = require('debug')('mazemaker');
 
 'use strict';
@@ -31,9 +31,9 @@ var mazeMaker = function(xDimension, yDimension, config) {
   config = _.extend(_.clone(defaults), config);
 
   // Mazes with negative dimensions or one cell are not valid
-  expect(xDimension).to.be.at.least(1);
-  expect(yDimension).to.be.at.least(1);
-  expect(xDimension * yDimension).to.be.at.least(1);
+  assert(xDimension >= 1, 'xDimension too small');
+  assert(yDimension >= 1, 'yDimension too small');
+  assert((xDimension * yDimension) > 1, 'combined dimensions too small');
 
 	// Simple maze data structure. All borders start out set and are cleared
   // below.
@@ -79,7 +79,7 @@ var mazeMaker = function(xDimension, yDimension, config) {
 
   while (unvisitedCount > 0) {
     currentCell = _.last(path);
-    expect(currentCell).to.not.be.undefined;
+    assert.notTypeOf(currentCell, 'undefined', 'current cell should not be undefined');
     currentCell.visited = true;
     debug(`At ${currentCell.x}, ${currentCell.y}`);
 
@@ -104,12 +104,12 @@ var mazeMaker = function(xDimension, yDimension, config) {
     var nextCell = _.sample(nextCells);
 
     debug(`removing ${nextCell.direction} border from [${currentCell.x}, ${currentCell.y}]`);
-    expect(currentCell.borders[nextCell.direction]).to.be.true;
+    assert(currentCell.borders[nextCell.direction] === true, 'current cell should have this border');
     currentCell.borders[nextCell.direction] = false;
 
     var oppositeBorder = oppositeDirections[nextCell.direction];
     debug(`removing ${oppositeBorder} border from [${nextCell.x}, ${nextCell.y}]`);
-    expect(nextCell.borders[oppositeBorder]).to.be.true;
+    assert(nextCell.borders[oppositeBorder] === true, 'next cell should have his border');
     nextCell.borders[oppositeBorder] = false;
 
     unvisitedCount--;
@@ -121,19 +121,19 @@ var mazeMaker = function(xDimension, yDimension, config) {
     for (var y = 0; y < yDimension; y++) {
       var cell = maze[x][y];
       if (x === 0) {
-        expect(cell.borders).to.have.property('left', true);
+        assert(cell.borders.left === true);
       }
       if (x === xDimension - 1) {
-        expect(cell.borders).to.have.property('right', true);
+        assert(cell.borders.right === true);
       }
       if (y === 0) {
-        expect(cell.borders).to.have.property('down', true);
+        assert(cell.borders.down === true);
       }
       if (y === yDimension - 1) {
-        expect(cell.borders).to.have.property('up', true);
+        assert(cell.borders.up === true);
       }
       _.each(cell.neighbors, function (neighbor, direction) {
-        expect(cell.borders[direction]).to.equal(neighbor.borders[oppositeDirections[direction]]);
+        assert(cell.borders[direction] === neighbor.borders[oppositeDirections[direction]]);
       });
     }
   }
