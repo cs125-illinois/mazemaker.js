@@ -95,7 +95,7 @@ function mazeMaker(xDimension, yDimension) {
 
     // Otherwise, choose a cell at random, take out the borders, mark it as
     // visited, and add it to the path
-    var nextCell = _.first(_.shuffle(nextCells));
+    var nextCell = _.sample(nextCells);
 
     debug(`removing ${nextCell.direction} border from [${currentCell.x}, ${currentCell.y}]`);
     expect(currentCell.borders[nextCell.direction]).to.be.true;
@@ -131,6 +131,17 @@ function mazeMaker(xDimension, yDimension) {
       });
     }
   }
+
+  // Clean up the maze structure
+  for (var x = 0; x < xDimension; x++) {
+    for (var y = 0; y < yDimension; y++) {
+      var cell = maze[x][y];
+      delete(cell.neighbors);
+      delete(cell.visited);
+    }
+  }
+
+  return maze;
 }
 
 exports = module.exports = mazeMaker
