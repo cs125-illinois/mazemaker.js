@@ -1,1 +1,1 @@
-const mazemaker = require('./index.js');
+const _ = require('underscore');
