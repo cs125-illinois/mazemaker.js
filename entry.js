@@ -1,1 +1,2 @@
-const _ = require('underscore');
+const _ = require('underscore'),
+      debug = require('debug');
