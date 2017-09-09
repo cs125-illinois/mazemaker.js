@@ -27,7 +27,7 @@ const oppositeDirections = {
 const defaults = {
   loops: 0
 }
-function mazeMaker(xDimension, yDimension, config) {
+var mazeMaker = function(xDimension, yDimension, config) {
   config = _.extend(_.clone(defaults), config);
 
   // Mazes with negative dimensions or one cell are not valid
