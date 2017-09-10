@@ -1,6 +1,6 @@
 {
   "name": "mazemaker",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A simple maze-creation library.",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cs125-illinois/mazemaker.git"
+    "url": "https://github.com/cs125-illinois/mazemaker.js.git"
   },
   "keywords": [
     "maze"
