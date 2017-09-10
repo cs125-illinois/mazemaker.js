@@ -18,9 +18,10 @@ module.exports = {
   },
   plugins: [
     new UglifyJSPlugin({
+      ecma: 5,
+      mangle: false,
       output: {
-        comments: false,
-        beautify: false,
+        comments: false
       }
     })
   ]
